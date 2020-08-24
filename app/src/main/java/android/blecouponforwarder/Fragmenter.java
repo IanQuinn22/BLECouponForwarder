@@ -26,8 +26,9 @@ public class Fragmenter {
         int packet_num = 1;
         byte[] adv_packet;
         int loopcount = 0;
+        long minTime = System.currentTimeMillis() + 20000;
 
-        while (advertise_flag && loopcount < 3){
+        while ((advertise_flag) && (loopcount < 5  || System.currentTimeMillis() < minTime) ){
             adv_packet = new byte[20];
             if (full_packet_count == 0){
                 adv_packet = new byte[data.length+2];

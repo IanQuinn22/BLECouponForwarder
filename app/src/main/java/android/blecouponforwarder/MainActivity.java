@@ -229,6 +229,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v){
                 scanLeDevice(true);
+                accept.setEnabled(false);
             }
         });
         create = findViewById(R.id.create);
@@ -238,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
                 String name = coupon_name.getText().toString();
                 couponNames.add(name);
                 currentCoupons.put(name,empty);
-                updateView(name);
+                updateView();
                 couponAdapter.notifyDataSetChanged();
             }
         });
@@ -304,6 +305,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     bluetoothLeScanner.stopScan(leScanCallback);
+                    accept.setEnabled(true);
                 }
             }, SCAN_PERIOD);
             bluetoothLeScanner.startScan(filters,settings,leScanCallback);
@@ -380,11 +382,13 @@ public class MainActivity extends AppCompatActivity {
             currentCoupons.put(name,fwdchain);
             couponNames.add(name);
         }
-        updateView(name);
+        updateView();
     }
 
-    private void updateView(String name){
-        coupons.append("\n" + name);
+    private void updateView(){
+        for (String name : couponNames){
+            coupons.append("\n" + name);
+        }
     }
 
     private void showToast(String message) {
