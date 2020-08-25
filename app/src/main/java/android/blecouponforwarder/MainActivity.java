@@ -386,9 +386,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateView(){
+        String available_coupons = "";
         for (String name : couponNames){
-            coupons.append("\n" + name);
+            available_coupons = available_coupons + "\n" + name;
         }
+        coupons.setText(available_coupons);
     }
 
     private void showToast(String message) {
