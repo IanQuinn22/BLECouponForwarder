@@ -126,6 +126,10 @@ public class MainActivity extends AppCompatActivity {
         BluetoothManager manager = (BluetoothManager) getApplicationContext().getSystemService(
                 Context.BLUETOOTH_SERVICE);
         btAdapter = manager.getAdapter();
+        Random random = new Random();
+        byte[] dname = new byte[6];
+        random.nextBytes(dname);
+        btAdapter.setName(new String(dname));
         if (btAdapter == null) {
             showFinishingAlertDialog("Bluetooth Error", "Bluetooth not detected on device");
         } else if (!btAdapter.isEnabled()) {
@@ -319,7 +323,8 @@ public class MainActivity extends AppCompatActivity {
         public void onScanResult(int callbackType, ScanResult result) {
             Log.i("callbackType", String.valueOf(callbackType));
             Log.i("result", result.toString());
-            String address = result.getDevice().getAddress();
+            //String address = result.getDevice().getAddress();
+            String address = result.getDevice().getName();
             byte[] pData = Assembler.gather(address,result.getScanRecord().getServiceData(SERVICE_UUID));
             if (pData != null){
                 updateCoupons(pData);
