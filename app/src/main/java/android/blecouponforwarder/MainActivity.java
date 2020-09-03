@@ -36,6 +36,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.ArrayList;
@@ -56,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREF_NAMESPACE = "namespace";;
     private static final ParcelUuid SERVICE_UUID =
             ParcelUuid.fromString("0000FEAA-0000-1000-8000-00805F9B34FB");
-    //private static final ParcelUuid MASK = ParcelUuid.fromString("FFFFFFFF-FFFF-FFFF-FFFF-000000000000");
+    private static final ParcelUuid MASK = ParcelUuid.fromString("FFFFFFFF-FFFF-FFFF-FFFF-000000000000");
     private SharedPreferences sharedPreferences;
     private BluetoothAdapter btAdapter;
     private BluetoothLeAdvertiser adv;
@@ -144,7 +145,14 @@ public class MainActivity extends AppCompatActivity {
                         .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
                         .build();
                 filters = new ArrayList<ScanFilter>();
-                filters.add(new ScanFilter.Builder().setServiceUuid(SERVICE_UUID).build());
+                //filters.add(new ScanFilter.Builder().setServiceUuid(SERVICE_UUID,MASK).build());
+                byte[] test = new byte[24];
+                byte[] mask = new byte [24];
+                for (int i = 0; i < 24; i++){
+                    test[i] = (byte)1;
+                    mask[i] = (byte)0;
+                }
+                filters.add(new ScanFilter.Builder().setServiceData(SERVICE_UUID,test,mask).build());
             }
             adv = btAdapter.getBluetoothLeAdvertiser();
             advertiseCallback = createAdvertiseCallback();
@@ -293,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
         coupon_name.setError(null);
         setEnabledViews(false, coupon_name, create);
         Fragmenter.setAdvertiseFlag(true);
-        Fragmenter.advertise(adv,serviceData,SERVICE_UUID,advertiseSettings,advertiseCallback);
+        Fragmenter.advertise(adv,24,serviceData,SERVICE_UUID,advertiseSettings,advertiseCallback);
     }
 
     private void stopAdvertising() {
@@ -313,6 +321,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }, SCAN_PERIOD);
             bluetoothLeScanner.startScan(filters,settings,leScanCallback);
+            //bluetoothLeScanner.startScan(leScanCallback);
         } else {
             bluetoothLeScanner.stopScan(leScanCallback);
         }
@@ -325,8 +334,8 @@ public class MainActivity extends AppCompatActivity {
             Log.i("result", result.toString());
             //String address = result.getDevice().getAddress();
             String address = result.getDevice().getName();
-            byte[] pData = Assembler.gather(address,result.getScanRecord().getServiceData(SERVICE_UUID));
-            if (pData != null){
+            byte[] pData = Assembler.gather(address, result.getScanRecord().getServiceData(SERVICE_UUID));
+            if (pData != null) {
                 updateCoupons(pData);
                 couponAdapter.notifyDataSetChanged();
             }
@@ -352,6 +361,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateCoupons(byte[] data) {
+        Log.e("why",Arrays.toString(data));
         byte[] fwdchain = new byte[0];
         byte[] temp;
         int index = 0;
