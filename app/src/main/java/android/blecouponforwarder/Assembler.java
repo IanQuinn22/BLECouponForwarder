@@ -37,6 +37,14 @@ public class Assembler {
                 if (data[1] == (byte)1){
                     gatherMap.remove(address);
                     expectMap.remove(address);
+                    int null_ind = conjoin.length;
+                    for (int k = 2; k < data.length; k++){
+                        if (data[k] == (byte)0){
+                            null_ind = k;
+                            break;
+                        }
+                    }
+                    conjoin = Arrays.copyOfRange(conjoin,0,conjoin.length-22+null_ind-2);
                     return conjoin;
                 }
             }
