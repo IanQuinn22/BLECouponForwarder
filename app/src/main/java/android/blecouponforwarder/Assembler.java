@@ -44,4 +44,9 @@ public class Assembler {
         return null;
     }
 
+    public static void clear(){
+        gatherMap.clear();
+        expectMap.clear();
+    }
+
 }

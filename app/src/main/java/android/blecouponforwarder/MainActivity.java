@@ -49,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "BLECouponAdvertiser";
     private static final int REQUEST_ENABLE_BLUETOOTH = 1;
-    private static final int SCAN_PERIOD = 220000;
+    private static final int SCAN_PERIOD = 140000;
     private static final String SHARED_PREFS_NAME = "txeddystone-uid-prefs";
     private static final String PREF_TX_POWER_LEVEL = "tx_power_level";
     private static final String PREF_TX_ADVERTISE_MODE = "tx_advertise_mode";
@@ -310,6 +310,7 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     bluetoothLeScanner.stopScan(leScanCallback);
                     accept.setEnabled(true);
+                    Assembler.clear();
                 }
             }, SCAN_PERIOD);
             bluetoothLeScanner.startScan(filters,settings,leScanCallback);
