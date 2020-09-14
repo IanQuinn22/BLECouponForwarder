@@ -18,11 +18,22 @@ public class Fragmenter {
     private static final String TAG = "FRAGMENTER";
     private static boolean advertise_flag = true;
     private static long endTime;
+    private static byte[] zero_byte = new byte [] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
 
     public static void advertise(final BluetoothLeAdvertiser adv, int max_size, byte[] data, ParcelUuid uuid, final AdvertiseSettings advertiseSettings, final AdvertiseCallback advertiseCallback){
         int full_packet_count = data.length / (max_size-2);
         int last_packet_bytes = data.length % (max_size-2);
+        int packets;
+        byte[][] reedSolomon;
+        if (last_packet_bytes != 0){
+            packets = full_packet_count + 1;
+        } else {
+            packets = full_packet_count;
+        }
+        reedSolomon = new byte[packets + 2][max_size];
+        reedSolomon[reedSolomon.length-2] = zero_byte;
+        reedSolomon[reedSolomon.length-1] = zero_byte;
         int packet_num = 1;
         byte[] adv_packet;
         int loopcount = 0;
@@ -62,6 +73,7 @@ public class Fragmenter {
                     for (int j = 0; j < sub.length; j++){
                         adv_packet[j+2] = sub[j];
                     }
+                    reedSolomon[packet_num-1] = adv_packet;
                     AdvertiseData advertiseData = new AdvertiseData.Builder()
                             .addServiceData(uuid,adv_packet)
                             //.addServiceUuid(uuid)
@@ -84,10 +96,11 @@ public class Fragmenter {
                     for (int k = 0; k < last_packet_bytes; k++){
                         adv_packet[k+2] = data[full_packet_count*(max_size - 2) + k];
                     }
-                    for (int m = last_packet_bytes+2; m < 24; m++){
+                    for (int m = last_packet_bytes+2; m < max_size; m++){
                         adv_packet[m] = (byte)0;
                     }
-                    final AdvertiseData advertiseData = new AdvertiseData.Builder()
+                    reedSolomon[packet_num-1] = adv_packet;
+                    AdvertiseData advertiseData = new AdvertiseData.Builder()
                             .addServiceData(uuid,adv_packet)
                             //.addServiceUuid(uuid)
                             .setIncludeTxPowerLevel(false)
@@ -97,6 +110,44 @@ public class Fragmenter {
                     adv.startAdvertising(advertiseSettings, advertiseData, advertiseCallback);
                     endTime = System.currentTimeMillis() + 1000;
                     Log.i("Packet Number: ","Last Packet");
+                    while (System.currentTimeMillis() < endTime){
+                    }
+                    adv.stopAdvertising(advertiseCallback);
+                    ReedSolomon codec = ReedSolomon.create(packets,2);
+                    codec.encodeParity(reedSolomon,2,max_size-2);
+                    adv_packet[0] = (byte)-1;
+                    adv_packet[1] = (byte)1;
+                    for (int g = 2; g < reedSolomon[packets].length; g++){
+                        adv_packet[g] = reedSolomon[packets][g];
+                    }
+                    advertiseData = new AdvertiseData.Builder()
+                            .addServiceData(uuid,adv_packet)
+                            //.addServiceUuid(uuid)
+                            .setIncludeTxPowerLevel(false)
+                            .setIncludeDeviceName(false)
+                            .build();
+
+                    adv.startAdvertising(advertiseSettings, advertiseData, advertiseCallback);
+                    endTime = System.currentTimeMillis() + 1000;
+                    Log.i("Reed Solomon Packet: ","1");
+                    while (System.currentTimeMillis() < endTime){
+                    }
+                    adv.stopAdvertising(advertiseCallback);
+                    adv_packet[0] = (byte)-1;
+                    adv_packet[1] = (byte)2;
+                    for (int g = 2; g < reedSolomon[packets+1].length; g++){
+                        adv_packet[g] = reedSolomon[packets+1][g];
+                    }
+                    advertiseData = new AdvertiseData.Builder()
+                            .addServiceData(uuid,adv_packet)
+                            //.addServiceUuid(uuid)
+                            .setIncludeTxPowerLevel(false)
+                            .setIncludeDeviceName(false)
+                            .build();
+
+                    adv.startAdvertising(advertiseSettings, advertiseData, advertiseCallback);
+                    endTime = System.currentTimeMillis() + 1000;
+                    Log.i("Reed Solomon Packet: ","2");
                     while (System.currentTimeMillis() < endTime){
                     }
                     adv.stopAdvertising(advertiseCallback);

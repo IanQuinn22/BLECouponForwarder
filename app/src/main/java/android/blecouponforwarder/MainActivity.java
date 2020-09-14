@@ -335,7 +335,12 @@ public class MainActivity extends AppCompatActivity {
             Log.i("result", result.toString());
             //String address = result.getDevice().getAddress();
             String address = result.getDevice().getName();
-            byte[] pData = Assembler.gather(address, result.getScanRecord().getServiceData(SERVICE_UUID));
+            byte[] pData = null;
+            if (result.getScanRecord().getServiceData(SERVICE_UUID)[0] == (byte)-1){
+                pData = Assembler.gatherRS(address,result.getScanRecord().getServiceData(SERVICE_UUID));
+            } else {
+                Assembler.gather(address,result.getScanRecord().getServiceData(SERVICE_UUID));
+            }
             if (pData != null) {
                 updateCoupons(pData);
                 couponAdapter.notifyDataSetChanged();
