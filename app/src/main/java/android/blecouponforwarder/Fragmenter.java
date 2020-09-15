@@ -16,6 +16,7 @@ import java.util.Arrays;
 public class Fragmenter {
 
     private static final String TAG = "FRAGMENTER";
+    private static final int ADV_TIME = 220;
     private static boolean advertise_flag = true;
     private static long endTime;
     private static byte[] zero_byte = new byte [] {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
@@ -32,8 +33,8 @@ public class Fragmenter {
             packets = full_packet_count;
         }
         reedSolomon = new byte[packets + 2][max_size];
-        reedSolomon[reedSolomon.length-2] = zero_byte;
-        reedSolomon[reedSolomon.length-1] = zero_byte;
+        reedSolomon[reedSolomon.length-2] = Arrays.copyOfRange(zero_byte,0,zero_byte.length);
+        reedSolomon[reedSolomon.length-1] = Arrays.copyOfRange(zero_byte,0,zero_byte.length);
         int packet_num = 1;
         byte[] adv_packet;
         int loopcount = 0;
@@ -73,7 +74,7 @@ public class Fragmenter {
                     for (int j = 0; j < sub.length; j++){
                         adv_packet[j+2] = sub[j];
                     }
-                    reedSolomon[packet_num-1] = adv_packet;
+                    reedSolomon[packet_num-1] = Arrays.copyOfRange(adv_packet,0,max_size);
                     AdvertiseData advertiseData = new AdvertiseData.Builder()
                             .addServiceData(uuid,adv_packet)
                             //.addServiceUuid(uuid)
@@ -83,7 +84,7 @@ public class Fragmenter {
 
                     adv.startAdvertising(advertiseSettings,advertiseData,advertiseCallback);
                     Log.i("Packet Number: ",Integer.toString(packet_num));
-                    endTime = System.currentTimeMillis() + 1000;
+                    endTime = System.currentTimeMillis() + ADV_TIME;
                     while (System.currentTimeMillis() < endTime){
                     }
                     adv.stopAdvertising(advertiseCallback);
@@ -99,7 +100,7 @@ public class Fragmenter {
                     for (int m = last_packet_bytes+2; m < max_size; m++){
                         adv_packet[m] = (byte)0;
                     }
-                    reedSolomon[packet_num-1] = adv_packet;
+                    reedSolomon[packet_num-1] = Arrays.copyOfRange(adv_packet,0,max_size);
                     AdvertiseData advertiseData = new AdvertiseData.Builder()
                             .addServiceData(uuid,adv_packet)
                             //.addServiceUuid(uuid)
@@ -108,13 +109,17 @@ public class Fragmenter {
                             .build();
 
                     adv.startAdvertising(advertiseSettings, advertiseData, advertiseCallback);
-                    endTime = System.currentTimeMillis() + 1000;
+                    endTime = System.currentTimeMillis() + ADV_TIME;
                     Log.i("Packet Number: ","Last Packet");
                     while (System.currentTimeMillis() < endTime){
                     }
                     adv.stopAdvertising(advertiseCallback);
                     ReedSolomon codec = ReedSolomon.create(packets,2);
                     codec.encodeParity(reedSolomon,2,max_size-2);
+                    for(int b = 0; b < reedSolomon.length; b++){
+                        Log.e("hi",Arrays.toString(reedSolomon[b]));
+                    }
+
                     adv_packet[0] = (byte)-1;
                     adv_packet[1] = (byte)1;
                     for (int g = 2; g < reedSolomon[packets].length; g++){
@@ -128,7 +133,7 @@ public class Fragmenter {
                             .build();
 
                     adv.startAdvertising(advertiseSettings, advertiseData, advertiseCallback);
-                    endTime = System.currentTimeMillis() + 1000;
+                    endTime = System.currentTimeMillis() + ADV_TIME;
                     Log.i("Reed Solomon Packet: ","1");
                     while (System.currentTimeMillis() < endTime){
                     }
@@ -146,7 +151,7 @@ public class Fragmenter {
                             .build();
 
                     adv.startAdvertising(advertiseSettings, advertiseData, advertiseCallback);
-                    endTime = System.currentTimeMillis() + 1000;
+                    endTime = System.currentTimeMillis() + ADV_TIME;
                     Log.i("Reed Solomon Packet: ","2");
                     while (System.currentTimeMillis() < endTime){
                     }
